@@ -1,4 +1,4 @@
-# QueueLess — Virtual Queue & Appointment Management System
+# Smart Queue System — Virtual Queue & Appointment Management System
 
 > **Tagline:** *Join the Queue. Not the Crowd.*  
 > **Problem Statement:** PS-02 — Virtual Queue & Appointment Management System for Government Offices  
