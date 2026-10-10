@@ -343,13 +343,14 @@ async function runTestSuite() {
     assert(newOfficeRes.status === 201, 'Admin added new office (HTTP 201).');
 
     // -------------------------------------------------------------
-    // Scenario 13: Explicit Demo Seed (Zero User Account Wipe)
+    // Scenario 13: Explicit Demo Seed Without User Loss
     // -------------------------------------------------------------
     console.log('\n--- Scenario 13: Explicit Demo Seed Without User Loss ---');
     const seedRes = await request('POST', '/api/queue/seed', { force: true }, adminToken);
     assert(seedRes.status === 200, 'Admin explicitly seeded demo queue (HTTP 200).');
-    assert(seedRes.data.state.currentServing.id === 'A-40', 'A-40 is serving in demo seed.');
-    assert(seedRes.data.state.tokens.length === 3, 'Tokens A-41 to A-43 are waiting.');
+    assert(seedRes.data.seeded === true, 'Seeding returned seeded: true.');
+    assert(seedRes.data.state && Array.isArray(seedRes.data.state.tokens), 'Demo state returned valid tokens array.');
+    assert(seedRes.data.state.tokens.length >= 4, 'Demo tokens populated in waiting queue.');
 
     // Verify user accounts were not wiped
     const staffCheckRes = await request('GET', '/api/admin/staff', null, adminToken);

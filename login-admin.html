@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Center Administration Login — QueueLess</title>
+  <title>Administrator Sign In — Smart Queue System</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,26 +14,25 @@
   <!-- Top Navigation Bar -->
   <header class="navbar">
     <a href="index.html" class="nav-brand">
-      <div class="brand-icon">QL</div>
+      <div class="brand-icon">SQS</div>
       <div>
-        <span class="brand-title">QueueLess</span>
-        <span class="brand-tagline">Center Administration Portal</span>
+        <span class="brand-title">Smart Queue System</span>
+        <span class="brand-tagline">Administrative Control Portal</span>
       </div>
     </a>
 
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="citizen.html" class="nav-link">Citizen Portal</a></li>
-      <li><a href="officer.html" class="nav-link">Desk Console</a></li>
-      <li><a href="login-officer.html" class="nav-link">Officer Login</a></li>
-      <li><a href="admin.html" class="nav-link active">Admin Dashboard</a></li>
+      <li><a href="officer.html" class="nav-link">Officer Console</a></li>
+      <li><a href="admin.html" class="nav-link active">Admin Portal</a></li>
+      <li><a href="appointment.html" class="nav-link">Appointments</a></li>
       <li><a href="demo-split.html" class="nav-link" style="color: var(--blue-400);">Dual-Screen Demo</a></li>
     </ul>
 
     <div class="nav-actions">
-      <a href="demo-split.html" class="btn-demo-badge">
-        <span class="pulse-dot"></span>
-        <span>Demo Runner</span>
+      <a href="login-officer.html" class="btn btn-secondary btn-sm" style="color: #000000; border-color: rgba(255,255,255,0.3);">
+        Officer Sign In
       </a>
     </div>
   </header>
@@ -43,194 +42,248 @@
       <div class="auth-card">
         
         <div class="auth-header">
-          <div style="font-size: 2rem; margin-bottom: 0.35rem;">🛡️</div>
-          <h1>System Administration</h1>
-          <p>Public Service Center &bull; Governance &amp; Queue Control</p>
+          <div class="auth-icon" style="background: #f3e8ff; border-color: #e9d5ff; color: #7e22ce;">👑</div>
+          <h1 class="auth-title">Administrator Sign In</h1>
+          <p class="auth-subtitle">Jan Seva Kendra System &amp; Staff Administration</p>
         </div>
 
-        <!-- Alert Notification Box -->
-        <div id="authAlert" class="alert-box" style="display: none;"></div>
+        <div class="auth-segmented-control">
+          <button type="button" class="auth-tab-btn active" id="tabBtnAdminLogin">Admin Sign In</button>
+          <button type="button" class="auth-tab-btn" id="tabBtnAdminSetup">Initial Setup</button>
+        </div>
 
-        <!-- ADMIN LOGIN FORM -->
-        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+        <div id="adminAlert" class="alert-box alert-info" style="display: none;">
+          <span id="adminAlertIcon">ℹ️</span>
+          <span id="adminAlertMessage"></span>
+        </div>
+
+        <!-- FORM 1: ADMIN LOGIN -->
+        <form id="adminLoginForm">
           <div class="form-group">
-            <label class="form-label" for="loginUsername">Admin Username</label>
-            <input type="text" id="loginUsername" class="form-control" placeholder="admin" required autocomplete="username">
+            <label class="form-label" for="adminUsername">Administrator Username</label>
+            <input 
+              type="text" 
+              id="adminUsername" 
+              class="form-control" 
+              placeholder="e.g. admin" 
+              required
+              autocomplete="username"
+            >
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            <label class="form-label" for="adminPassword">Password</label>
+            <input 
+              type="password" 
+              id="adminPassword" 
+              class="form-control" 
+              placeholder="Enter master password" 
+              required
+              autocomplete="current-password"
+            >
           </div>
 
-          <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
-            Authenticate as Administrator
+          <button type="submit" id="btnAdminLoginSubmit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem; background: #1e3a8a;">
+            Sign In to Admin Portal
           </button>
 
-          <!-- Quick Demo Fill -->
-          <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">
-                Default Credentials:
-              </div>
-              <div style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">
-                admin / Admin@1234
-              </div>
+          <!-- Quick Test Credentials Box -->
+          <div class="demo-credentials-box">
+            <div><strong>System Administrator Account:</strong></div>
+            <div style="margin-top: 0.35rem;">
+              <span>Default Admin: <code>admin</code> / <code>Admin@1234</code></span>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="quickFill('admin', 'Admin@1234')">
-              Auto-Fill
-            </button>
-          </div>
-
-          <div style="margin-top: 1rem; text-align: center;">
-            <button type="button" style="background: none; border: none; color: var(--blue-700); font-size: 0.82rem; cursor: pointer; text-decoration: underline;" onclick="toggleSetupModal(true)">
-              First-time setup / provision new admin account
-            </button>
+            <div class="demo-btn-group">
+              <button type="button" class="demo-chip-btn" id="btnFillAdmin">Pre-fill Admin Credentials</button>
+            </div>
           </div>
         </form>
 
-      </div>
-    </div>
+        <!-- FORM 2: INITIAL SETUP -->
+        <form id="adminSetupForm" style="display: none;">
+          <div class="alert-box alert-warning">
+            <span>🛡️</span>
+            <span>Use this tab to provision an initial administrator if running in a fresh, unseeded environment.</span>
+          </div>
 
-    <!-- ONE-TIME SETUP MODAL -->
-    <div id="setupModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
-      <div style="background: #ffffff; border-radius: var(--radius-md); max-width: 440px; width: 100%; padding: 1.75rem; box-shadow: var(--shadow-lg);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h2 style="font-size: 1.15rem; font-weight: 700;">Provision Admin Account</h2>
-          <button type="button" onclick="toggleSetupModal(false)" style="background: none; border: none; font-size: 1.25rem; cursor: pointer;">&times;</button>
-        </div>
+          <div class="form-group">
+            <label class="form-label" for="setupKey">Setup Secret Key (Optional in local demo)</label>
+            <input 
+              type="password" 
+              id="setupKey" 
+              class="form-control" 
+              placeholder="From ADMIN_SETUP_KEY environment variable"
+            >
+          </div>
 
-        <div id="modalAlert" class="alert-box" style="display: none;"></div>
+          <div class="form-group">
+            <label class="form-label" for="setupUsername">Admin Username</label>
+            <input 
+              type="text" 
+              id="setupUsername" 
+              class="form-control" 
+              value="admin"
+              required
+            >
+          </div>
 
-        <form onsubmit="handleAdminSetup(event)">
           <div class="form-group">
-            <label class="form-label">Admin Full Name</label>
-            <input type="text" id="setupName" class="form-control" placeholder="District Center Director" required>
+            <label class="form-label" for="setupName">Admin Full Name</label>
+            <input 
+              type="text" 
+              id="setupName" 
+              class="form-control" 
+              value="System Administrator"
+              required
+            >
           </div>
+
           <div class="form-group">
-            <label class="form-label">Username</label>
-            <input type="text" id="setupUsername" class="form-control" placeholder="admin" required>
+            <label class="form-label" for="setupPassword">Master Password</label>
+            <input 
+              type="password" 
+              id="setupPassword" 
+              class="form-control" 
+              placeholder="Minimum 6 characters" 
+              minlength="6"
+              required
+            >
           </div>
-          <div class="form-group">
-            <label class="form-label">New Password (Min. 6 chars)</label>
-            <input type="password" id="setupPassword" class="form-control" placeholder="New master password" minlength="6" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Setup Security Key</label>
-            <input type="password" id="setupKey" class="form-control" placeholder="QueueLessSetup2026" value="QueueLessSetup2026">
-          </div>
-          <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleSetupModal(false)">Cancel</button>
-            <button type="submit" id="btnSetupSubmit" class="btn btn-primary btn-sm">Provision Account</button>
-          </div>
+
+          <button type="submit" id="btnSetupSubmit" class="btn btn-warning btn-lg" style="width: 100%;">
+            Provision Admin Account
+          </button>
         </form>
+
       </div>
     </div>
   </main>
 
+  <!-- Footer -->
   <footer class="footer">
-    <div>QueueLess &bull; Secure Civic Administration Engine</div>
+    <div><strong>Smart Queue System</strong> &mdash; Civic-Tech Virtual Queue System</div>
+    <div style="margin-top: 0.25rem; color: var(--text-dim);">
+      Government of Gujarat &bull; Jan Seva Kendra Administrative Portal
+    </div>
   </footer>
 
   <script src="js/queue.js"></script>
   <script>
-    function showAlert(msg, type = 'danger') {
-      const alertBox = document.getElementById('authAlert');
-      alertBox.className = `alert-box alert-${type}`;
-      alertBox.innerHTML = msg;
-      alertBox.style.display = 'block';
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabBtnAdminLogin = document.getElementById('tabBtnAdminLogin');
+      const tabBtnAdminSetup = document.getElementById('tabBtnAdminSetup');
+      const adminLoginForm = document.getElementById('adminLoginForm');
+      const adminSetupForm = document.getElementById('adminSetupForm');
+      const adminAlert = document.getElementById('adminAlert');
+      const adminAlertIcon = document.getElementById('adminAlertIcon');
+      const adminAlertMessage = document.getElementById('adminAlertMessage');
+      const btnFillAdmin = document.getElementById('btnFillAdmin');
 
-    function quickFill(u, p) {
-      document.getElementById('loginUsername').value = u;
-      document.getElementById('loginPassword').value = p;
-    }
-
-    function toggleSetupModal(show) {
-      const m = document.getElementById('setupModal');
-      m.style.display = show ? 'flex' : 'none';
-      document.getElementById('modalAlert').style.display = 'none';
-    }
-
-    async function handleAdminLogin(e) {
-      e.preventDefault();
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      const btn = document.getElementById('btnLoginSubmit');
-
-      btn.disabled = true;
-      btn.textContent = 'Authenticating...';
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          showAlert(`❌ ${data.message || 'Invalid administrator credentials.'}`, 'danger');
-          btn.disabled = false;
-          btn.textContent = 'Authenticate as Administrator';
-          return;
-        }
-
-        if (data.user && data.user.role !== 'admin') {
-          showAlert('❌ Access denied: Account is not an administrator. Please use Officer Login.', 'danger');
-          btn.disabled = false;
-          btn.textContent = 'Authenticate as Administrator';
-          return;
-        }
-
-        QueueEngine.setAuthToken(data.token);
-        localStorage.setItem('queueless_admin_user', JSON.stringify(data.user));
-
-        showAlert('✅ Administrator authenticated! Redirecting to Management Dashboard...', 'success');
-        setTimeout(() => {
-          window.location.href = 'admin.html';
-        }, 750);
-      } catch (err) {
-        showAlert('Network error: ' + err.message, 'danger');
-        btn.disabled = false;
-        btn.textContent = 'Authenticate as Administrator';
+      function showAlert(type, msg) {
+        adminAlert.className = `alert-box alert-${type}`;
+        adminAlert.style.display = 'flex';
+        adminAlertIcon.textContent = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : type === 'danger' ? '❌' : 'ℹ️';
+        adminAlertMessage.innerHTML = msg;
       }
-    }
 
-    async function handleAdminSetup(e) {
-      e.preventDefault();
-      const name = document.getElementById('setupName').value.trim();
-      const username = document.getElementById('setupUsername').value.trim();
-      const password = document.getElementById('setupPassword').value;
-      const setupKey = document.getElementById('setupKey').value.trim();
-      const mAlert = document.getElementById('modalAlert');
-
-      try {
-        const res = await fetch('/api/auth/setup-admin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, username, password, setupKey })
-        });
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          mAlert.className = 'alert-box alert-danger';
-          mAlert.textContent = data.message || 'Setup failed.';
-          mAlert.style.display = 'block';
-          return;
-        }
-
-        mAlert.className = 'alert-box alert-success';
-        mAlert.textContent = 'Admin created successfully! You can now log in.';
-        mAlert.style.display = 'block';
-        quickFill(username, password);
-        setTimeout(() => toggleSetupModal(false), 1200);
-      } catch (err) {
-        mAlert.className = 'alert-box alert-danger';
-        mAlert.textContent = err.message;
-        mAlert.style.display = 'block';
+      function hideAlert() {
+        adminAlert.style.display = 'none';
       }
-    }
+
+      tabBtnAdminLogin.addEventListener('click', () => {
+        tabBtnAdminLogin.classList.add('active');
+        tabBtnAdminSetup.classList.remove('active');
+        adminLoginForm.style.display = 'block';
+        adminSetupForm.style.display = 'none';
+        hideAlert();
+      });
+
+      tabBtnAdminSetup.addEventListener('click', () => {
+        tabBtnAdminSetup.classList.add('active');
+        tabBtnAdminLogin.classList.remove('active');
+        adminSetupForm.style.display = 'block';
+        adminLoginForm.style.display = 'none';
+        hideAlert();
+      });
+
+      if (btnFillAdmin) {
+        btnFillAdmin.addEventListener('click', () => {
+          document.getElementById('adminUsername').value = 'admin';
+          document.getElementById('adminPassword').value = 'Admin@1234';
+          showAlert('info', 'Pre-filled default admin credentials (<code>admin</code> / <code>Admin@1234</code>).');
+        });
+      }
+
+      // Login form submission
+      adminLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const username = document.getElementById('adminUsername').value.trim();
+        const password = document.getElementById('adminPassword').value;
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok || !data.success) {
+            showAlert('danger', data.message || 'Login failed. Invalid administrator credentials.');
+            return;
+          }
+
+          if (data.user.role !== 'admin') {
+            showAlert('danger', 'Access denied: This user account does not have administrator privileges.');
+            return;
+          }
+
+          QueueEngine.setAuthToken(data.token);
+          showAlert('success', `Administrator access granted. Welcome, ${data.user.name}! Redirecting to Admin Dashboard...`);
+          setTimeout(() => {
+            window.location.href = 'admin.html';
+          }, 800);
+        } catch (err) {
+          showAlert('danger', `Network error: ${err.message}`);
+        }
+      });
+
+      // Setup form submission
+      adminSetupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const setupKey = document.getElementById('setupKey').value;
+        const username = document.getElementById('setupUsername').value.trim();
+        const name = document.getElementById('setupName').value.trim();
+        const password = document.getElementById('setupPassword').value;
+
+        try {
+          const res = await fetch('/api/auth/setup-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ setupKey, username, name, password })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok || !data.success) {
+            showAlert('danger', data.message || 'Admin setup failed.');
+            return;
+          }
+
+          showAlert('success', 'Admin account configured successfully! You can now switch to the Admin Sign In tab and log in.');
+          tabBtnAdminLogin.click();
+          document.getElementById('adminUsername').value = username;
+          document.getElementById('adminPassword').value = password;
+        } catch (err) {
+          showAlert('danger', `Network error: ${err.message}`);
+        }
+      });
+    });
   </script>
 </body>
 </html>

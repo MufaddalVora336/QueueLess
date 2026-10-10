@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Officer Console — QueueLess</title>
+  <title>Officer Console — Smart Queue System</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,9 +14,9 @@
   <!-- Top Navigation Bar -->
   <header class="navbar">
     <a href="index.html" class="nav-brand">
-      <div class="brand-icon">QL</div>
+      <div class="brand-icon">SQS</div>
       <div>
-        <span class="brand-title">QueueLess</span>
+        <span class="brand-title">Smart Queue System</span>
         <span class="brand-tagline">Officer Administrative Console</span>
       </div>
     </a>
@@ -24,23 +24,18 @@
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="citizen.html" class="nav-link">Citizen Portal</a></li>
-      <li><a href="officer.html" class="nav-link active">Desk Console</a></li>
-      <li><a href="login-officer.html" class="nav-link">Staff Login</a></li>
-      <li><a href="admin.html" class="nav-link">Admin</a></li>
-      <li><a href="demo-split.html" class="nav-link" style="color: var(--blue-400);">Dual-Screen Demo</a></li>
+      <li><a href="officer.html" class="nav-link active">Officer Console</a></li>
+      <li><a href="admin.html" class="nav-link">Admin Portal</a></li>
+      <li><a href="appointment.html" class="nav-link">Appointments</a></li>
+      <li><a href="demo-split.html" class="nav-link" style="color: var(white);">Dual-Screen Demo</a></li>
     </ul>
 
-    <div class="nav-actions" style="display: flex; align-items: center; gap: 0.5rem;">
-      <span id="officerNavbarName" style="color: #ffffff; font-size: 0.82rem; font-weight: 600; background: rgba(255,255,255,0.12); padding: 0.25rem 0.6rem; border-radius: var(--radius-xs);">
-        Counter 2 Officer
-      </span>
-      <button id="btnOfficerLogout" class="btn btn-secondary btn-sm" style="display: none; padding: 0.25rem 0.55rem; font-size: 0.78rem;" onclick="handleOfficerLogout()">
-        Sign Out
-      </button>
-      <a href="demo-split.html" class="btn-demo-badge">
-        <span class="pulse-dot"></span>
-        <span>Demo Runner</span>
-      </a>
+    <div class="nav-actions">
+      <div id="officerSessionBadge" style="display: flex; align-items: center; gap: 0.5rem;">
+        <a href="login-officer.html" class="btn btn-secondary btn-sm" style="color: #000000; border-color: rgba(255,255,255,0.3); font-size: 0.78rem;">
+          Officer Sign In
+        </a>
+      </div>
     </div>
   </header>
 
@@ -273,7 +268,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <div><strong>QueueLess</strong> &mdash; Officer Administration Console</div>
+    <div><strong>Smart Queue System</strong> &mdash; Officer Administration Console</div>
     <div style="margin-top: 0.25rem; color: var(--text-dim);">
       Jan Seva Kendra Administrative Portal
     </div>

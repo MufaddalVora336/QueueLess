@@ -665,9 +665,9 @@ const server = http.createServer(async (req, res) => {
 
         const body = await readBody();
         const { office, force } = body || {};
-        const state = await db.seedDemoData({ office, force });
+        const result = await db.seedDemoData({ office, force });
         logInfo(`[ADMIN] Demo queue data seeded explicitly by ${authCheck.session.username}`);
-        return sendJson(200, { success: true, state, message: 'Demo queue seeded successfully.' });
+        return sendJson(200, { success: true, seeded: result.seeded, count: result.count, state: result.state, message: 'Demo queue seeded successfully.' });
       }
 
       // 4. POST /api/token -> Citizen generates online virtual token
@@ -681,10 +681,15 @@ const server = http.createServer(async (req, res) => {
           idToken = null
         } = body || {};
 
+      
+        
         // Phone Verification Check
         const fbConfig = getFirebaseClientConfig();
+        const demoMode =
+          process.env.QUEUELESS_DEMO_MODE === 'true' &&
+          process.env.NODE_ENV !== 'production';
 
-        if (fbConfig.configured) {
+        if (fbConfig.configured && !demoMode) {
           // Firebase is configured: verify genuine Firebase ID token
           if (!idToken) {
             logError('POST /api/token', 'Missing Firebase ID token', { mobile });
@@ -711,16 +716,16 @@ const server = http.createServer(async (req, res) => {
             status: 'SUCCESS'
           });
         } else {
-          // If Firebase is not configured in .env, check whether token is supplied or warn
+          // Validate the mobile number for the local demo/fallback
           if (!mobile || String(mobile).replace(/\D/g, '').length < 10) {
             return sendJson(400, {
               success: false,
               message: 'Valid 10-digit mobile number is required.'
             });
           }
-          logAuth('Token request received (Firebase credentials pending in .env)', { mobile });
-        }
 
+          logAuth('Token request received (demo or Firebase credentials pending)', { mobile });
+        }
         // Anti-abuse check
         const hasActive = await db.hasActiveTokenForService(mobile, service);
         if (hasActive) {
@@ -909,7 +914,7 @@ const server = http.createServer(async (req, res) => {
         logQueueSnapshot(state);
         return sendJson(200, { success: true, state });
       }
-
+      console.log('[404 DEBUG]', req.method, req.url, 'pathname:', pathname);
       return sendJson(404, { success: false, message: 'Endpoint not found' });
     } catch (err) {
       logError(pathname, err.message);

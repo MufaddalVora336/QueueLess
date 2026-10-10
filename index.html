@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QueueLess — Virtual Queue & Appointment Management</title>
+  <title>Smart Queue System — Virtual Queue & Appointment Management</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,9 +14,9 @@
   <!-- Top Navigation Bar -->
   <header class="navbar">
     <a href="index.html" class="nav-brand">
-      <div class="brand-icon">QL</div>
+      <div class="brand-icon">SQS</div>
       <div>
-        <span class="brand-title">QueueLess</span>
+        <span class="brand-title">Smart Queue System</span>
         <span class="brand-tagline">Citizen Services &amp; Queue Management</span>
       </div>
     </a>
@@ -24,16 +24,18 @@
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link active">Home</a></li>
       <li><a href="citizen.html" class="nav-link">Citizen Portal</a></li>
-      <li><a href="officer.html" class="nav-link">Desk Console</a></li>
-      <li><a href="login-officer.html" class="nav-link">Officer Login</a></li>
-      <li><a href="admin.html" class="nav-link">Admin</a></li>
-      <li><a href="demo-split.html" class="nav-link" style="color: var(--blue-400);">Dual-Screen Demo</a></li>
+      <li><a href="officer.html" class="nav-link">Officer Console</a></li>
+      <li><a href="admin.html" class="nav-link">Admin Portal</a></li>
+      <li><a href="appointment.html" class="nav-link">Appointments</a></li>
+      <li><a href="demo-split.html" class="nav-link" style="color: var(white);">Dual-Screen Demo</a></li>
     </ul>
 
     <div class="nav-actions">
-      <a href="demo-split.html" class="btn-demo-badge">
-        <span class="pulse-dot"></span>
-        <span>Demo Runner</span>
+      <a href="login-officer.html" class="btn btn-secondary btn-sm" style="color: #000000; border-color: rgba(255,255,255,0.3); font-size: 0.78rem;">
+        Officer Login
+      </a>
+      <a href="login-admin.html" class="btn btn-secondary btn-sm" style="color: #000000; border-color: rgba(255,255,255,0.3); font-size: 0.78rem;">
+        Admin Portal
       </a>
     </div>
   </header>
@@ -45,15 +47,15 @@
     <section class="hero">
       <div class="hero-header-row">
         <div class="hero-text-block">
-          <div class="hero-app-name">QueueLess</div>
+          <div class="hero-app-name">Smart Queue System</div>
           <h1 class="hero-title">Virtual Queue &amp; Appointment Management</h1>
           <p class="hero-subtitle">
             Skip unnecessary waiting at government offices. Join the queue remotely and arrive when your turn is near.
           </p>
           <div class="hero-actions">
             <a href="citizen.html" class="btn btn-primary btn-lg">Get a Token</a>
-            <a href="login-officer.html" class="btn btn-secondary btn-lg">Officer Login</a>
-            <a href="admin.html" class="btn btn-secondary btn-lg">Admin Portal</a>
+            <a href="officer.html" class="btn btn-secondary btn-lg">Officer Desk</a>
+            <a href="admin.html" class="btn btn-secondary btn-lg" style="background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8;">Admin Portal</a>
             <a href="demo-split.html" class="btn btn-secondary btn-lg" style="border-color: var(--blue-500); color: var(--blue-700); background: var(--blue-50);">
               ⚡ Split-Screen Demo
             </a>
@@ -178,7 +180,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <div><strong>QueueLess</strong> &mdash; Virtual Queue &amp; Appointment Management System</div>
+    <div><strong>Smart Queue System</strong> &mdash; Virtual Queue &amp; Appointment Management System</div>
     <div style="margin-top: 0.25rem; color: var(--text-dim);">
       Civic-Tech Prototype &bull; PS-02 Working Build
     </div>

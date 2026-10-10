@@ -3,303 +3,432 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Center Administration Dashboard — QueueLess</title>
+  <title>Admin Dashboard — Smart Queue System</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    .admin-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 1.5rem;
-    }
-    .admin-subcard {
-      background: #ffffff;
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-md);
-      padding: 1.25rem;
-      box-shadow: var(--shadow-sm);
-    }
-    .admin-subcard-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 0.85rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .log-entry {
-      padding: 0.5rem 0.75rem;
-      border-left: 3px solid var(--blue-600);
-      background: #f8fafc;
-      margin-bottom: 0.4rem;
-      border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
-      font-size: 0.82rem;
-    }
-  </style>
 </head>
 <body>
 
   <!-- Top Navigation Bar -->
   <header class="navbar">
     <a href="index.html" class="nav-brand">
-      <div class="brand-icon">QL</div>
+      <div class="brand-icon" style="background: #4338ca;">SQS</div>
       <div>
-        <span class="brand-title">QueueLess</span>
-        <span class="brand-tagline">Center Administration Portal</span>
+        <span class="brand-title">Smart Queue System</span>
+        <span class="brand-tagline">Jan Seva Kendra Administrative Portal</span>
       </div>
     </a>
 
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="citizen.html" class="nav-link">Citizen Portal</a></li>
-      <li><a href="officer.html" class="nav-link">Desk Console</a></li>
-      <li><a href="admin.html" class="nav-link active">Admin Dashboard</a></li>
-      <li><a href="demo-split.html" class="nav-link" style="color: var(--blue-400);">Dual-Screen Demo</a></li>
+      <li><a href="officer.html" class="nav-link">Officer Console</a></li>
+      <li><a href="admin.html" class="nav-link active">Admin Portal</a></li>
+      <li><a href="appointment.html" class="nav-link">Appointments</a></li>
+      <li><a href="demo-split.html" class="nav-link" style="color: var(white);">Dual-Screen Demo</a></li>
     </ul>
 
     <div class="nav-actions">
-      <span id="adminUserBadge" style="color: #ffffff; font-size: 0.85rem; font-weight: 600; margin-right: 0.75rem;">
-        Admin Desk
-      </span>
-      <button id="btnAdminLogout" class="btn btn-secondary btn-sm" onclick="handleAdminLogout()">
-        Sign Out
-      </button>
+      <div class="admin-navbar-user">
+        <span class="badge badge-admin">Admin</span>
+        <span id="navAdminName" style="font-weight: 600;">System Administrator</span>
+        <button id="btnAdminLogout" class="btn btn-secondary btn-sm" style="color: #000000; border-color: rgba(255,255,255,0.3); padding: 0.25rem 0.6rem;">
+          Logout
+        </button>
+      </div>
     </div>
   </header>
 
   <main class="page-container">
 
-    <!-- Top Admin Header -->
+    <!-- Header Banner -->
     <div style="margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
       <div>
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <h1 style="font-size: 1.45rem; font-weight: 800; color: var(--text-main);">Center Governance &amp; Queue Control</h1>
-          <span class="badge badge-online">Admin Active</span>
+          <h1 style="font-size: 1.45rem; font-weight: 800; color: var(--text-main);">District Administration Console</h1>
+          <span class="badge badge-serving">Master Control</span>
         </div>
         <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.15rem;">
-          Public Service Center Infrastructure &bull; Staff Approvals &bull; Multi-Counter Management
+          Multi-office routing, officer verification, live queue governance &amp; audit logging
         </p>
       </div>
 
+      <!-- Quick Action Buttons -->
       <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-        <button id="btnSeedDemo" class="btn btn-warning btn-sm" onclick="handleSeedDemoQueue()">
+        <button id="btnSeedDemoQueue" class="btn btn-warning btn-sm" title="Populate demo queue for presentation without losing users">
           ⚡ Seed Demo Queue
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="refreshAdminData()">
-          🔄 Refresh
+        <button id="btnRefreshAdmin" class="btn btn-secondary btn-sm">
+          ↻ Refresh All
         </button>
       </div>
     </div>
 
-    <!-- Alert Banner -->
-    <div id="adminAlert" class="alert-box" style="display: none;"></div>
-
-    <!-- Governance Metric Cards -->
+    <!-- Top Key Metrics Cards -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-info">
-          <div class="stat-label">Total Completed Today</div>
-          <div class="stat-value" id="metricTotalServed">0</div>
+          <div class="stat-label">Pending Officers</div>
+          <div class="stat-value" id="statPendingOfficers" style="color: #b45309;">0</div>
         </div>
-        <div class="stat-icon-wrapper">✅</div>
+        <div class="stat-icon-wrapper" style="background: #fffbeb;">⏳</div>
       </div>
 
       <div class="stat-card">
         <div class="stat-info">
-          <div class="stat-label">Currently Waiting</div>
-          <div class="stat-value" id="metricWaiting">0</div>
+          <div class="stat-label">Approved Staff</div>
+          <div class="stat-value" id="statApprovedStaff" style="color: #15803d;">0</div>
         </div>
-        <div class="stat-icon-wrapper">⏳</div>
+        <div class="stat-icon-wrapper" style="background: #ecfdf5;">👥</div>
       </div>
 
       <div class="stat-card">
         <div class="stat-info">
-          <div class="stat-label">Active Serving Desks</div>
-          <div class="stat-value" id="metricServing">0</div>
+          <div class="stat-label">Active Queue</div>
+          <div class="stat-value" id="statActiveQueue" style="color: #0369a1;">0</div>
         </div>
-        <div class="stat-icon-wrapper">👤</div>
+        <div class="stat-icon-wrapper" style="background: #f0f9ff;">🎫</div>
       </div>
 
       <div class="stat-card">
         <div class="stat-info">
-          <div class="stat-label">Pending Staff Approvals</div>
-          <div class="stat-value highlight-amber" id="metricPendingStaff">0</div>
+          <div class="stat-label">Offices &amp; Counters</div>
+          <div class="stat-value" id="statOfficesCounters">0 / 0</div>
         </div>
-        <div class="stat-icon-wrapper">📋</div>
+        <div class="stat-icon-wrapper" style="background: #f8fafc;">🏛️</div>
       </div>
     </div>
 
-    <!-- Middle Split: Staff Approval Queue + Office Management -->
-    <div class="admin-grid">
+    <!-- Admin Navigation Tabs -->
+    <nav class="admin-tabs-nav">
+      <button class="admin-tab-btn active" data-tab="tab-staff">
+        <span>👥</span> Staff Approvals (<span id="tabPendingBadge">0</span>)
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-queue">
+        <span>🎫</span> Global Queue Monitor
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-offices">
+        <span>🏛️</span> Offices &amp; Counters
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-services">
+        <span>📋</span> Service Catalog
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-audit">
+        <span>📜</span> Audit Activity Logs
+      </button>
+    </nav>
 
-      <!-- STAFF APPROVAL QUEUE -->
-      <div class="admin-subcard">
-        <div class="admin-subcard-title">
-          <span>👥 Staff Governance &amp; Approvals</span>
-          <span class="badge badge-waiting" id="badgePendingCount">0 Pending</span>
+    <!-- ========================================== -->
+    <!-- TAB 1: STAFF & OFFICER APPROVALS           -->
+    <!-- ========================================== -->
+    <div id="tab-staff" class="tab-content active">
+      
+      <!-- Pending Approvals Section -->
+      <section class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title" style="color: #b45309;">Pending Officer Applications</h2>
+            <p class="card-subtitle">Review and authorize new desk officers before granting desk access</p>
+          </div>
+          <span class="badge badge-pending" id="badgePendingCount">0 Pending</span>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-          Review officer applications. Only APPROVED officers can access desk operations.
-        </p>
 
-        <div style="overflow-x: auto;">
-          <table class="queue-table" style="font-size: 0.82rem;">
+        <div class="table-responsive">
+          <table class="queue-table">
             <thead>
               <tr>
-                <th>Officer</th>
-                <th>Center / Counter</th>
+                <th>Officer Name</th>
+                <th>Username</th>
+                <th>Mobile</th>
+                <th>Requested Office</th>
+                <th>Applied At</th>
                 <th>Status</th>
-                <th style="text-align: right;">Action</th>
+                <th>Authorization</th>
               </tr>
             </thead>
-            <tbody id="staffTableBody">
-              <tr>
-                <td colspan="4" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">
-                  Loading staff list...
-                </td>
-              </tr>
+            <tbody id="tablePendingStaff">
+              <!-- Dynamically populated -->
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      <!-- COUNTER ASSIGNMENT & OFFICES -->
-      <div class="admin-subcard">
-        <div class="admin-subcard-title">
-          <span>🏢 Office &amp; Counter Configuration</span>
-          <button class="btn btn-secondary btn-sm" onclick="toggleAddOfficeModal(true)">+ Add Office</button>
+      <!-- Active Staff Roster -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Registered Staff Roster</h2>
+            <p class="card-subtitle">All registered personnel, assigned offices, and status controls</p>
+          </div>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-          Active Gujarat Seva Kendras, Services, and Counter Officer Rosters.
-        </p>
 
-        <div id="officeListContainer" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 380px; overflow-y: auto;">
-          <!-- Loaded dynamically -->
+        <div class="table-responsive">
+          <table class="queue-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Office</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tableActiveStaff">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
         </div>
-      </div>
+      </section>
 
     </div>
 
-    <!-- GLOBAL QUEUE MONITOR SECTION -->
-    <section class="card" style="margin-top: 1.5rem;">
-      <div class="card-header">
-        <div>
-          <h2 class="card-title">Authoritative Unified Queue Monitor</h2>
-          <p class="card-subtitle">Real-time status across all physical walk-in and online citizen tokens.</p>
+    <!-- ========================================== -->
+    <!-- TAB 2: GLOBAL QUEUE MONITOR                -->
+    <!-- ========================================== -->
+    <div id="tab-queue" class="tab-content">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Filterable Queue Monitor</h2>
+            <p class="card-subtitle">Complete real-time cross-office queue state with status filtering</p>
+          </div>
+          <button id="btnRefreshQueueTable" class="btn btn-secondary btn-sm">↻ Refresh Queue</button>
         </div>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <span class="pulse-dot"></span>
-          <span style="font-size: 0.82rem; color: var(--text-dim);">Live Sync (2s Polling)</span>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <div>
+            <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 2px;">Filter Status:</label>
+            <select id="filterStatus">
+              <option value="ALL">All Statuses</option>
+              <option value="WAITING">WAITING</option>
+              <option value="SERVING">SERVING</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="NO-SHOW">NO-SHOW</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 2px;">Filter Office:</label>
+            <select id="filterOffice">
+              <option value="ALL">All Offices</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 2px;">Filter Service:</label>
+            <select id="filterService">
+              <option value="ALL">All Services</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 2px;">Search Citizen / Token:</label>
+            <input type="text" id="filterSearch" placeholder="e.g. A-42 or Priya">
+          </div>
         </div>
-      </div>
 
-      <!-- Filters Bar -->
-      <div class="filter-bar">
-        <select id="filterOffice" class="form-control" onchange="loadQueueMonitor()">
-          <option value="">All Offices</option>
-        </select>
-
-        <select id="filterService" class="form-control" onchange="loadQueueMonitor()">
-          <option value="">All Services</option>
-          <option value="Income Certificate">Income Certificate</option>
-          <option value="Residence Certificate">Residence Certificate</option>
-          <option value="Birth Certificate">Birth Certificate</option>
-          <option value="Caste Certificate">Caste Certificate</option>
-        </select>
-
-        <select id="filterStatus" class="form-control" onchange="loadQueueMonitor()">
-          <option value="">All Statuses</option>
-          <option value="WAITING">WAITING</option>
-          <option value="SERVING">SERVING</option>
-          <option value="COMPLETED">COMPLETED</option>
-          <option value="NO_SHOW">NO_SHOW</option>
-          <option value="CANCELLED">CANCELLED</option>
-        </select>
-
-        <button class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset Filters</button>
-      </div>
-
-      <!-- Queue Monitor Table -->
-      <div style="overflow-x: auto;">
-        <table class="queue-table">
-          <thead>
-            <tr>
-              <th>Token ID</th>
-              <th>Type</th>
-              <th>Citizen Name</th>
-              <th>Service</th>
-              <th>Office</th>
-              <th>Status</th>
-              <th>Counter</th>
-              <th>Wait / Time</th>
-            </tr>
-          </thead>
-          <tbody id="adminQueueTableBody">
-            <tr>
-              <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-dim);">
-                Loading queue records...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- AUDIT ACTIVITY LOGS -->
-    <section class="card" style="margin-top: 1.5rem;">
-      <div class="card-header">
-        <div>
-          <h2 class="card-title">System Audit &amp; Activity Log</h2>
-          <p class="card-subtitle">Complete chronological record of queue transactions and administrative actions.</p>
+        <div class="table-responsive">
+          <table class="queue-table">
+            <thead>
+              <tr>
+                <th>Token</th>
+                <th>Type</th>
+                <th>Citizen Name</th>
+                <th>Mobile</th>
+                <th>Service</th>
+                <th>Office</th>
+                <th>Counter</th>
+                <th>Status</th>
+                <th>Created At</th>
+              </tr>
+            </thead>
+            <tbody id="tableQueueMonitor">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="loadAuditLogs()">Refresh Logs</button>
-      </div>
+      </section>
+    </div>
 
-      <div id="activityLogsContainer" style="max-height: 280px; overflow-y: auto; padding-right: 0.5rem;">
-        <!-- Loaded dynamically -->
+    <!-- ========================================== -->
+    <!-- TAB 3: OFFICES & COUNTERS                  -->
+    <!-- ========================================== -->
+    <div id="tab-offices" class="tab-content">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+        
+        <!-- Offices List & Add -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Jan Seva Kendra Locations</h2>
+              <p class="card-subtitle">Configured citizen service centers</p>
+            </div>
+          </div>
+
+          <div id="officeListContainer" style="margin-bottom: 1rem;">
+            <!-- Dynamically populated -->
+          </div>
+
+          <form id="formAddOffice" style="background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <strong style="font-size: 0.85rem; color: var(--text-main);">Add New Office</strong>
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <input type="text" id="newOfficeName" class="form-control" placeholder="Office Name (e.g. Jamnagar Kendra)" required>
+            </div>
+            <div class="form-group">
+              <input type="text" id="newOfficeCity" class="form-control" placeholder="City (e.g. Jamnagar)" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">+ Register Office</button>
+          </form>
+        </section>
+
+        <!-- Counters & Assignment -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Counter Rostering &amp; Assignment</h2>
+              <p class="card-subtitle">Assign authorized officers to service counters</p>
+            </div>
+          </div>
+
+          <div class="table-responsive" style="margin-bottom: 1rem;">
+            <table class="queue-table">
+              <thead>
+                <tr>
+                  <th>Counter</th>
+                  <th>Service Focus</th>
+                  <th>Assigned Officer</th>
+                </tr>
+              </thead>
+              <tbody id="tableCounters">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Counter Assignment Form -->
+          <form id="formAssignCounter" style="background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <strong style="font-size: 0.85rem; color: var(--text-main);">Assign Officer to Counter</strong>
+            
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label class="form-label" style="font-size: 0.78rem;">Select Counter</label>
+              <select id="assignCounterSelect" class="form-control">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" style="font-size: 0.78rem;">Select Approved Officer</label>
+              <select id="assignOfficerSelect" class="form-control">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-warning btn-sm" style="width: 100%;">
+              Assign Desk Officer
+            </button>
+          </form>
+        </section>
+
       </div>
-    </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: SERVICE CATALOG                     -->
+    <!-- ========================================== -->
+    <div id="tab-services" class="tab-content">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+        
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Citizen Services Catalog</h2>
+              <p class="card-subtitle">Service estimated durations and document checklist requirements</p>
+            </div>
+          </div>
+
+          <div id="servicesListContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Add New Public Service</h2>
+              <p class="card-subtitle">Expand Jan Seva Kendra service offerings</p>
+            </div>
+          </div>
+
+          <form id="formAddService">
+            <div class="form-group">
+              <label class="form-label">Service Name</label>
+              <input type="text" id="newServiceName" class="form-control" placeholder="e.g. Senior Citizen Card" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Estimated Service Minutes</label>
+              <input type="number" id="newServiceMinutes" class="form-control" value="5" min="1" max="60" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Required Documents (Comma separated)</label>
+              <input type="text" id="newServiceDocs" class="form-control" placeholder="Aadhaar Card, Age Proof, Photos" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+              + Add Service to Catalog
+            </button>
+          </form>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: AUDIT LOGS & DIAGNOSTICS            -->
+    <!-- ========================================== -->
+    <div id="tab-audit" class="tab-content">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">System Activity Audit Log</h2>
+            <p class="card-subtitle">Real-time immutable audit trail for security compliance</p>
+          </div>
+          <button id="btnRefreshLogs" class="btn btn-secondary btn-sm">↻ Refresh Logs</button>
+        </div>
+
+        <div class="log-stream" id="logStreamContainer">
+          <!-- Dynamically populated -->
+          <div class="log-entry">
+            <span class="log-time">[Loading]</span>
+            <span class="log-actor">system</span>
+            <span class="log-action">FETCH_LOGS</span>
+            <span class="log-details">Retrieving audit activity logs from database...</span>
+          </div>
+        </div>
+      </section>
+    </div>
 
   </main>
 
-  <!-- ADD OFFICE MODAL -->
-  <div id="addOfficeModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
-    <div style="background: #ffffff; border-radius: var(--radius-md); max-width: 480px; width: 100%; padding: 1.5rem; box-shadow: var(--shadow-lg);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 700;">Add Government Center</h3>
-        <button type="button" onclick="toggleAddOfficeModal(false)" style="background: none; border: none; font-size: 1.25rem; cursor: pointer;">&times;</button>
-      </div>
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
 
-      <form onsubmit="handleAddOffice(event)">
-        <div class="form-group">
-          <label class="form-label">Office Name</label>
-          <input type="text" id="newOfficeName" class="form-control" placeholder="e.g. Gandhinagar Jan Seva Kendra" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tagline / Zone</label>
-          <input type="text" id="newOfficeTagline" class="form-control" placeholder="e.g. Sector 10 Administrative Complex" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">District</label>
-          <input type="text" id="newOfficeDistrict" class="form-control" placeholder="e.g. Gandhinagar" required>
-        </div>
-        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.25rem;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAddOfficeModal(false)">Cancel</button>
-          <button type="submit" class="btn btn-primary btn-sm">Create Office</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
+  <!-- Footer -->
   <footer class="footer">
-    <div>QueueLess &bull; State-Level Virtual Queue Administration Portal</div>
+    <div><strong>Smart Queue System</strong> &mdash; Jan Seva Kendra Administration Console</div>
+    <div style="margin-top: 0.25rem; color: var(--text-dim);">
+      Government of Gujarat &bull; Official Public Service Administrative Portal
+    </div>
   </footer>
 
   <script src="js/queue.js"></script>
+  <script src="js/app.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

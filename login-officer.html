@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Officer Portal Login — QueueLess</title>
+  <title>Officer Portal Login — Smart Queue System</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,26 +14,25 @@
   <!-- Top Navigation Bar -->
   <header class="navbar">
     <a href="index.html" class="nav-brand">
-      <div class="brand-icon">QL</div>
+      <div class="brand-icon">SQS</div>
       <div>
-        <span class="brand-title">QueueLess</span>
-        <span class="brand-tagline">Officer Staff Portal</span>
+        <span class="brand-title">Smart Queue System</span>
+        <span class="brand-tagline">Officer Administrative Portal</span>
       </div>
     </a>
 
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="citizen.html" class="nav-link">Citizen Portal</a></li>
-      <li><a href="officer.html" class="nav-link">Desk Console</a></li>
-      <li><a href="login-officer.html" class="nav-link active">Officer Login</a></li>
-      <li><a href="login-admin.html" class="nav-link">Admin</a></li>
-      <li><a href="demo-split.html" class="nav-link" style="color: var(--blue-400);">Dual-Screen Demo</a></li>
+      <li><a href="officer.html" class="nav-link active">Officer Console</a></li>
+      <li><a href="admin.html" class="nav-link">Admin Portal</a></li>
+      <li><a href="appointment.html" class="nav-link">Appointments</a></li>
+      <li><a href="demo-split.html" class="nav-link" style="color: var(white);">Dual-Screen Demo</a></li>
     </ul>
 
     <div class="nav-actions">
-      <a href="demo-split.html" class="btn-demo-badge">
-        <span class="pulse-dot"></span>
-        <span>Demo Runner</span>
+      <a href="login-admin.html" class="btn btn-secondary btn-sm" style="color: #000000; border-color: rgba(255,255,255,0.3);">
+        Admin Sign In
       </a>
     </div>
   </header>
@@ -43,101 +42,138 @@
       <div class="auth-card">
         
         <div class="auth-header">
-          <div style="font-size: 2rem; margin-bottom: 0.35rem;">🏛️</div>
-          <h1>Officer Access Portal</h1>
-          <p>Jan Seva Kendra &bull; Desk Management Authentication</p>
+          <div class="auth-icon">🛡️</div>
+          <h1 class="auth-title">Desk Officer Portal</h1>
+          <p class="auth-subtitle">Jan Seva Kendra Service Counter Management</p>
         </div>
 
-        <!-- Tab Switcher -->
-        <div class="auth-tabs">
-          <button id="tabBtnLogin" class="auth-tab-btn active" onclick="switchTab('login')">Sign In</button>
-          <button id="tabBtnRegister" class="auth-tab-btn" onclick="switchTab('register')">New Staff Registration</button>
+        <div class="auth-segmented-control">
+          <button type="button" class="auth-tab-btn active" id="tabBtnLogin">Officer Sign In</button>
+          <button type="button" class="auth-tab-btn" id="tabBtnRegister">Register as Officer</button>
         </div>
 
-        <!-- Alert Notification Box -->
-        <div id="authAlert" class="alert-box" style="display: none;"></div>
+        <div id="authAlert" class="alert-box alert-info" style="display: none;">
+          <span id="alertIcon">ℹ️</span>
+          <span id="alertMessage"></span>
+        </div>
 
-        <!-- TAB 1: LOGIN FORM -->
-        <form id="officerLoginForm" onsubmit="handleOfficerLogin(event)">
+        <!-- FORM 1: LOGIN -->
+        <form id="officerLoginForm">
           <div class="form-group">
-            <label class="form-label" for="loginUsername">Username or Email</label>
-            <input type="text" id="loginUsername" class="form-control" placeholder="e.g. officer1" required autocomplete="username">
+            <label class="form-label" for="loginUsername">Officer Username</label>
+            <input 
+              type="text" 
+              id="loginUsername" 
+              class="form-control" 
+              placeholder="e.g. officer1" 
+              required
+              autocomplete="username"
+            >
           </div>
 
           <div class="form-group">
             <label class="form-label" for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            <input 
+              type="password" 
+              id="loginPassword" 
+              class="form-control" 
+              placeholder="Enter your password" 
+              required
+              autocomplete="current-password"
+            >
           </div>
 
-          <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+          <button type="submit" id="btnLoginSubmit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem;">
             Sign In to Desk Console
           </button>
 
-          <!-- Demo Quick Logins for Hackathon Jurors -->
-          <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle);">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.5rem;">
-              ⚡ Quick Demo Credentials:
+          <!-- Quick Test Credentials Box -->
+          <div class="demo-credentials-box">
+            <div><strong>Demo Evaluation Accounts:</strong></div>
+            <div style="margin-top: 0.35rem;">
+              <span>Approved Officer: <code>officer1</code> / <code>officer123</code></span>
             </div>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="quickFill('officer1', 'officer123')">
-                Approved: officer1
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="quickFill('sneha_patel', 'staff123')">
-                Pending: sneha_patel
-              </button>
+            <div style="margin-top: 0.2rem;">
+              <span>Pending Officer: <code>sneha_patel</code> / <code>staff123</code></span>
+            </div>
+            <div class="demo-btn-group">
+              <button type="button" class="demo-chip-btn" id="btnFillApproved">Pre-fill Approved</button>
+              <button type="button" class="demo-chip-btn" id="btnFillPending">Pre-fill Pending</button>
             </div>
           </div>
         </form>
 
-        <!-- TAB 2: REGISTRATION FORM -->
-        <form id="officerRegisterForm" style="display: none;" onsubmit="handleOfficerRegister(event)">
+        <!-- FORM 2: REGISTRATION -->
+        <form id="officerRegisterForm" style="display: none;">
           <div class="form-group">
-            <label class="form-label" for="regFullName">Full Name</label>
-            <input type="text" id="regFullName" class="form-control" placeholder="e.g. Rajesh Trivedi" required>
+            <label class="form-label" for="regName">Full Legal Name</label>
+            <input 
+              type="text" 
+              id="regName" 
+              class="form-control" 
+              placeholder="e.g. Ramesh Chandra" 
+              required
+            >
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="regEmail">Official Email</label>
-            <input type="email" id="regEmail" class="form-control" placeholder="e.g. rajesh.t@queueless.gov.in" required>
+            <label class="form-label" for="regUsername">Desired Username</label>
+            <input 
+              type="text" 
+              id="regUsername" 
+              class="form-control" 
+              placeholder="e.g. ramesh_desk" 
+              required
+              pattern="[a-zA-Z0-9_\-\.]{3,30}"
+              title="3-30 letters, numbers, or underscores"
+            >
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="regUsername">Username</label>
-            <input type="text" id="regUsername" class="form-control" placeholder="e.g. rajesh_trivedi" required>
+            <label class="form-label" for="regMobile">Mobile Number</label>
+            <div class="phone-input-group">
+              <div class="country-code-badge">🇮🇳 +91</div>
+              <input 
+                type="tel" 
+                id="regMobile" 
+                class="form-control" 
+                placeholder="10-digit mobile" 
+                maxlength="10" 
+                pattern="[6-9][0-9]{9}"
+                required
+              >
+            </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="regPassword">Password <span class="hint">(Min. 6 chars)</span></label>
-            <input type="password" id="regPassword" class="form-control" placeholder="Create secure password" minlength="6" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="regOffice">Assigned Seva Kendra</label>
+            <label class="form-label" for="regOffice">Assigned Kendra / Office</label>
             <select id="regOffice" class="form-control">
-              <option value="Rajkot District Service Center">Rajkot District Service Center</option>
+              <option value="Rajkot District Service Center" selected>Rajkot District Service Center</option>
               <option value="Ahmedabad Civic Center (East Zone)">Ahmedabad Civic Center (East Zone)</option>
-              <option value="Surat Municipal Seva Kendra">Surat Municipal Seva Kendra</option>
-              <option value="Vadodara Jan Seva Kendra">Vadodara Jan Seva Kendra</option>
+              <option value="Surat Jan Seva Kendra">Surat Jan Seva Kendra</option>
+              <option value="Vadodara Collectorate Office">Vadodara Collectorate Office</option>
             </select>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-            <div class="form-group">
-              <label class="form-label" for="regCounter">Counter</label>
-              <input type="text" id="regCounter" class="form-control" placeholder="e.g. Counter 2" value="Counter 2">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="regEmployeeId">Employee ID</label>
-              <input type="text" id="regEmployeeId" class="form-control" placeholder="e.g. GOV-8821">
-            </div>
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Account Password</label>
+            <input 
+              type="password" 
+              id="regPassword" 
+              class="form-control" 
+              placeholder="Minimum 6 characters" 
+              minlength="6"
+              required
+            >
           </div>
 
-          <div class="alert-box alert-warning" style="font-size: 0.8rem; margin: 0.75rem 0 1rem;">
-            ℹ️ <strong>Governance Note:</strong> New registrations require administrative approval. Your account will be created with <strong>PENDING</strong> status until verified by the Center Administrator.
+          <div class="alert-box alert-warning" style="margin-top: 0.5rem;">
+            <span>⚠️</span>
+            <span>All new officer accounts are provisioned in <strong>PENDING</strong> status. An administrator must approve your application before desk queue controls are unlocked.</span>
           </div>
 
-          <button type="submit" id="btnRegSubmit" class="btn btn-primary" style="width: 100%;">
-            Submit Staff Registration
+          <button type="submit" id="btnRegisterSubmit" class="btn btn-warning btn-lg" style="width: 100%;">
+            Submit Officer Application
           </button>
         </form>
 
@@ -145,138 +181,144 @@
     </div>
   </main>
 
+  <!-- Footer -->
   <footer class="footer">
-    <div>QueueLess &bull; Citizen Virtual Queue &amp; Public Seva Management</div>
+    <div><strong>Smart Queue System</strong> &mdash; Civic-Tech Virtual Queue System</div>
+    <div style="margin-top: 0.25rem; color: var(--text-dim);">
+      Government of Gujarat &bull; Jan Seva Kendra Administrative Portal
+    </div>
   </footer>
 
   <script src="js/queue.js"></script>
   <script>
-    function switchTab(tab) {
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabBtnLogin = document.getElementById('tabBtnLogin');
+      const tabBtnRegister = document.getElementById('tabBtnRegister');
       const loginForm = document.getElementById('officerLoginForm');
-      const regForm = document.getElementById('officerRegisterForm');
-      const tabLogin = document.getElementById('tabBtnLogin');
-      const tabReg = document.getElementById('tabBtnRegister');
-      const alertBox = document.getElementById('authAlert');
-      alertBox.style.display = 'none';
+      const registerForm = document.getElementById('officerRegisterForm');
+      const authAlert = document.getElementById('authAlert');
+      const alertIcon = document.getElementById('alertIcon');
+      const alertMessage = document.getElementById('alertMessage');
 
-      if (tab === 'login') {
+      const btnFillApproved = document.getElementById('btnFillApproved');
+      const btnFillPending = document.getElementById('btnFillPending');
+
+      function showAlert(type, msg) {
+        authAlert.className = `alert-box alert-${type}`;
+        authAlert.style.display = 'flex';
+        alertIcon.textContent = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : type === 'danger' ? '❌' : 'ℹ️';
+        alertMessage.innerHTML = msg;
+      }
+
+      function hideAlert() {
+        authAlert.style.display = 'none';
+      }
+
+      // Tab switcher
+      tabBtnLogin.addEventListener('click', () => {
+        tabBtnLogin.classList.add('active');
+        tabBtnRegister.classList.remove('active');
         loginForm.style.display = 'block';
-        regForm.style.display = 'none';
-        tabLogin.classList.add('active');
-        tabReg.classList.remove('active');
-      } else {
+        registerForm.style.display = 'none';
+        hideAlert();
+      });
+
+      tabBtnRegister.addEventListener('click', () => {
+        tabBtnRegister.classList.add('active');
+        tabBtnLogin.classList.remove('active');
+        registerForm.style.display = 'block';
         loginForm.style.display = 'none';
-        regForm.style.display = 'block';
-        tabLogin.classList.remove('active');
-        tabReg.classList.add('active');
-      }
-    }
+        hideAlert();
+      });
 
-    function showAlert(msg, type = 'danger') {
-      const alertBox = document.getElementById('authAlert');
-      alertBox.className = `alert-box alert-${type}`;
-      alertBox.innerHTML = msg;
-      alertBox.style.display = 'block';
-    }
-
-    function quickFill(user, pass) {
-      document.getElementById('loginUsername').value = user;
-      document.getElementById('loginPassword').value = pass;
-    }
-
-    async function handleOfficerLogin(e) {
-      e.preventDefault();
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      const btn = document.getElementById('btnLoginSubmit');
-
-      btn.disabled = true;
-      btn.textContent = 'Verifying...';
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+      // Demo quick fills
+      if (btnFillApproved) {
+        btnFillApproved.addEventListener('click', () => {
+          document.getElementById('loginUsername').value = 'officer1';
+          document.getElementById('loginPassword').value = 'officer123';
+          showAlert('info', 'Pre-filled approved officer credentials (<code>officer1</code>). Click Sign In.');
         });
-        const data = await res.json();
+      }
 
-        if (!res.ok || !data.success) {
-          if (data.code === 'ACCOUNT_PENDING') {
-            showAlert(`⏳ <strong>Approval Required:</strong> ${data.message}`, 'warning');
-          } else {
-            showAlert(`❌ ${data.message || 'Login failed. Please check credentials.'}`, 'danger');
+      if (btnFillPending) {
+        btnFillPending.addEventListener('click', () => {
+          document.getElementById('loginUsername').value = 'sneha_patel';
+          document.getElementById('loginPassword').value = 'staff123';
+          showAlert('warning', 'Pre-filled pending officer credentials (<code>sneha_patel</code>). Test PENDING status block.');
+        });
+      }
+
+      // Login submission
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok || !data.success) {
+            if (data.code === 'ACCOUNT_PENDING') {
+              showAlert('warning', `<strong>Account Pending Approval:</strong> ${data.message} Please ask the Kendra Administrator to approve your account.`);
+            } else if (data.code === 'ACCOUNT_INACTIVE') {
+              showAlert('danger', `<strong>Account Deactivated:</strong> ${data.message}`);
+            } else {
+              showAlert('danger', data.message || 'Login failed. Please verify credentials.');
+            }
+            return;
           }
-          btn.disabled = false;
-          btn.textContent = 'Sign In to Desk Console';
-          return;
+
+          // Save auth token
+          QueueEngine.setAuthToken(data.token);
+          showAlert('success', `Sign-in successful. Welcome, ${data.user.name}! Redirecting to Officer Console...`);
+          setTimeout(() => {
+            window.location.href = 'officer.html';
+          }, 800);
+        } catch (err) {
+          showAlert('danger', `Network error: ${err.message}`);
         }
+      });
 
-        QueueEngine.setAuthToken(data.token);
-        localStorage.setItem('queueless_user', JSON.stringify(data.user));
+      // Registration submission
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
 
-        showAlert('✅ Login successful! Redirecting to Desk Console...', 'success');
-        setTimeout(() => {
-          window.location.href = 'officer.html';
-        }, 800);
-      } catch (err) {
-        showAlert('Network error: ' + err.message, 'danger');
-        btn.disabled = false;
-        btn.textContent = 'Sign In to Desk Console';
-      }
-    }
+        const name = document.getElementById('regName').value.trim();
+        const username = document.getElementById('regUsername').value.trim();
+        const mobile = document.getElementById('regMobile').value.trim();
+        const office = document.getElementById('regOffice').value;
+        const password = document.getElementById('regPassword').value;
 
-    async function handleOfficerRegister(e) {
-      e.preventDefault();
-      const fullName = document.getElementById('regFullName').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const username = document.getElementById('regUsername').value.trim();
-      const password = document.getElementById('regPassword').value;
-      const officeId = document.getElementById('regOffice').value;
-      const counter = document.getElementById('regCounter').value.trim();
-      const employeeId = document.getElementById('regEmployeeId').value.trim();
-      const btn = document.getElementById('btnRegSubmit');
+        try {
+          const res = await fetch('/api/auth/register-officer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, username, mobile, office, password })
+          });
 
-      btn.disabled = true;
-      btn.textContent = 'Submitting...';
+          const data = await res.json();
 
-      try {
-        const res = await fetch('/api/auth/register-officer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fullName,
-            email,
-            username,
-            password,
-            officeId,
-            counter,
-            employeeId
-          })
-        });
-        const data = await res.json();
+          if (!res.ok || !data.success) {
+            showAlert('danger', data.message || 'Registration failed.');
+            return;
+          }
 
-        if (!res.ok || !data.success) {
-          showAlert(`❌ ${data.message || 'Registration failed.'}`, 'danger');
-          btn.disabled = false;
-          btn.textContent = 'Submit Staff Registration';
-          return;
+          showAlert('success', `<strong>Application Submitted!</strong> Username <code>${data.user.username}</code> is currently <strong>PENDING</strong> administrator approval. Once approved in the Admin Portal, you may sign in.`);
+          registerForm.reset();
+        } catch (err) {
+          showAlert('danger', `Network error: ${err.message}`);
         }
-
-        showAlert(
-          `✅ <strong>Registration Submitted!</strong><br>${data.message}<br><br>` +
-          `An Administrator must approve account "<strong>${username}</strong>" in the Admin Dashboard before you can sign in.`,
-          'success'
-        );
-        document.getElementById('officerRegisterForm').reset();
-        btn.disabled = false;
-        btn.textContent = 'Submit Staff Registration';
-      } catch (err) {
-        showAlert('Network error: ' + err.message, 'danger');
-        btn.disabled = false;
-        btn.textContent = 'Submit Staff Registration';
-      }
-    }
+      });
+    });
   </script>
 </body>
 </html>

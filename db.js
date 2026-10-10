@@ -1,9 +1,8 @@
 /**
- * QueueLess — Database Access Layer (MongoDB Atlas with File Fallback)
- * Manages persistent tokens, status transitions, offices, counters,
- * user accounts, sessions, appointments, and audit activity logs.
- * Uses official MongoDB Node.js driver when configured, transparently
- * falling back to structured JSON file persistence.
+ * QueueLess — Database Access Layer & State Engine
+ * Integrated with MongoDB Atlas & Local JSON File Persistence Fallback.
+ * Authoritative single source of truth for Virtual Queue, Appointments,
+ * Offices, Counters, Users (RBAC), Sessions, and Audit Logs.
  */
 
 const fs = require('fs');
@@ -19,7 +18,7 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const ACTIVITY_FILE = path.join(DATA_DIR, 'activity.json');
 
-// Baseline Seed State
+// Default Baseline Queue State
 const DEFAULT_STATE = {
   currentServing: {
     id: 'A-40',
@@ -30,8 +29,7 @@ const DEFAULT_STATE = {
     mobile: '9812345678',
     status: 'SERVING',
     counter: 'Counter 2',
-    calledAt: new Date(Date.now() - 3 * 60000).toISOString(),
-    isDemo: true
+    calledAt: new Date(Date.now() - 3 * 60000).toISOString()
   },
   tokens: [
     {
@@ -42,8 +40,7 @@ const DEFAULT_STATE = {
       customerName: 'Amit Verma',
       mobile: '9823456789',
       status: 'WAITING',
-      createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
-      isDemo: true
+      createdAt: new Date(Date.now() - 15 * 60000).toISOString()
     },
     {
       id: 'A-42',
@@ -53,8 +50,7 @@ const DEFAULT_STATE = {
       customerName: 'Suresh Mehta',
       mobile: '9834567890',
       status: 'WAITING',
-      createdAt: new Date(Date.now() - 10 * 60000).toISOString(),
-      isDemo: true
+      createdAt: new Date(Date.now() - 10 * 60000).toISOString()
     },
     {
       id: 'A-43',
@@ -64,13 +60,12 @@ const DEFAULT_STATE = {
       customerName: 'Neha Gupta',
       mobile: '9845678901',
       status: 'WAITING',
-      createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
-      isDemo: true
+      createdAt: new Date(Date.now() - 5 * 60000).toISOString()
     }
   ],
   completedTokens: [
-    { id: 'A-38', type: 'ONLINE', service: 'Income Certificate', status: 'COMPLETED', isDemo: true },
-    { id: 'A-39', type: 'WALK-IN', service: 'Caste Certificate', status: 'COMPLETED', isDemo: true }
+    { id: 'A-38', type: 'ONLINE', service: 'Income Certificate', office: 'Rajkot District Service Center', status: 'COMPLETED' },
+    { id: 'A-39', type: 'WALK-IN', service: 'Caste Certificate', office: 'Rajkot District Service Center', status: 'COMPLETED' }
   ],
   nextTokenNum: 44,
   completedCount: 24,
@@ -78,67 +73,39 @@ const DEFAULT_STATE = {
   soundEnabled: true
 };
 
+// Default Gujarat Jan Seva Kendra Offices & Counters
 const DEFAULT_OFFICES = [
   {
-    id: 'OFF-01',
+    id: 'OFF-RAJKOT-01',
     name: 'Rajkot District Service Center',
-    tagline: 'Jan Seva Kendra',
+    tagline: 'Jan Seva Kendra, Collector Office Compound',
     district: 'Rajkot',
-    services: [
-      'Income Certificate',
-      'Residence Certificate',
-      'Birth Certificate',
-      'Caste Certificate',
-      'Land Records & RoR (7/12)'
-    ],
+    services: ['Income Certificate', 'Residence Certificate', 'Birth Certificate', 'Caste Certificate', 'Non-Creamy Layer'],
     counters: [
-      { id: 'C-01', name: 'Counter 1', service: 'Revenue Services', officerId: null, officerName: 'Standby' },
-      { id: 'C-02', name: 'Counter 2', service: 'Certificates & Jan Seva', officerId: 'USR-OFFICER-01', officerName: 'Prakash Varma' },
-      { id: 'C-03', name: 'Counter 3', service: 'Land & RoR', officerId: null, officerName: 'Standby' },
-      { id: 'C-04', name: 'Counter 4', service: 'General Inquiries', officerId: null, officerName: 'Standby' }
+      { id: 'C-RJK-01', name: 'Counter 1', service: 'Revenue Services', officerId: 'USR-OFFICER-01', officerName: 'Prakash Varma' },
+      { id: 'C-RJK-02', name: 'Counter 2', service: 'Certificates & Public Grievances', officerId: 'USR-OFFICER-01', officerName: 'Prakash Varma' },
+      { id: 'C-RJK-03', name: 'Counter 3', service: 'General Inquiries', officerId: null, officerName: 'Standby' }
     ]
   },
   {
-    id: 'OFF-02',
+    id: 'OFF-AHMEDABAD-01',
     name: 'Ahmedabad Civic Center (East Zone)',
-    tagline: 'East Zone Seva Kendra',
+    tagline: 'AMC Jan Seva Kendra, Viratnagar Cross Road',
     district: 'Ahmedabad',
-    services: [
-      'Income Certificate',
-      'Birth Certificate',
-      'Caste Certificate'
-    ],
+    services: ['Property Tax', 'Birth Certificate', 'Trade License', 'Income Certificate'],
     counters: [
-      { id: 'C-05', name: 'Counter 1', service: 'Civic Certificates', officerId: null, officerName: 'Standby' },
-      { id: 'C-06', name: 'Counter 2', service: 'Revenue Desk', officerId: null, officerName: 'Standby' }
+      { id: 'C-AHM-01', name: 'Counter 1', service: 'Property & Civic Taxes', officerId: 'USR-OFFICER-02', officerName: 'Sneha Patel' },
+      { id: 'C-AHM-02', name: 'Counter 2', service: 'Certificates & Verification', officerId: null, officerName: 'Standby' }
     ]
   },
   {
-    id: 'OFF-03',
-    name: 'Surat Jan Seva Kendra',
-    tagline: 'City Civic Center',
+    id: 'OFF-SURAT-01',
+    name: 'Surat Municipal Seva Kendra',
+    tagline: 'Athwa Zone Civic Facility',
     district: 'Surat',
-    services: [
-      'Income Certificate',
-      'Residence Certificate',
-      'Birth Certificate'
-    ],
+    services: ['Income Certificate', 'Domicile Certificate', 'Water Drainage Services'],
     counters: [
-      { id: 'C-07', name: 'Counter 1', service: 'General Services', officerId: null, officerName: 'Standby' }
-    ]
-  },
-  {
-    id: 'OFF-04',
-    name: 'Vadodara Collectorate Office',
-    tagline: 'Collectorate Jan Seva',
-    district: 'Vadodara',
-    services: [
-      'Income Certificate',
-      'Caste Certificate',
-      'Land Records & RoR (7/12)'
-    ],
-    counters: [
-      { id: 'C-08', name: 'Counter 1', service: 'Revenue & Land', officerId: null, officerName: 'Standby' }
+      { id: 'C-SRT-01', name: 'Counter 1', service: 'Citizen Services', officerId: null, officerName: 'Standby' }
     ]
   }
 ];
@@ -192,7 +159,6 @@ let fileState = loadFile(QUEUE_FILE, DEFAULT_STATE);
 let fileAppointments = loadFile(APPOINTMENTS_FILE, []);
 let fileOffices = loadFile(OFFICES_FILE, DEFAULT_OFFICES);
 let fileUsers = loadFile(USERS_FILE, () => {
-  // Initial demo officer, pending officer, and admin
   const officerCred = auth.hashPassword('officer123');
   const pendingCred = auth.hashPassword('staff123');
   const adminCred = auth.hashPassword(process.env.ADMIN_INITIAL_PASSWORD || 'Admin@1234');
@@ -281,39 +247,28 @@ async function initDatabase() {
 
   try {
     mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000
+      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 5000
     });
 
     await mongoClient.connect();
     mongoDb = mongoClient.db(dbName);
 
-    // Verify connection
-    await mongoDb.command({ ping: 1 });
-
-    // Ensure collections and unique indexes
+    // Ensure Indexes
     const tokensCol = mongoDb.collection('tokens');
     const appointmentsCol = mongoDb.collection('appointments');
     const officesCol = mongoDb.collection('offices');
     const usersCol = mongoDb.collection('users');
-    const sessionsCol = mongoDb.collection('sessions');
-    const activityCol = mongoDb.collection('activity');
     const metadataCol = mongoDb.collection('metadata');
 
     await tokensCol.createIndex({ id: 1 }, { unique: true });
-    await tokensCol.createIndex({ status: 1 });
-    await tokensCol.createIndex({ office: 1 });
-    await tokensCol.createIndex({ createdAt: 1 });
+    await tokensCol.createIndex({ status: 1, office: 1, service: 1 });
     await appointmentsCol.createIndex({ id: 1 }, { unique: true });
     await usersCol.createIndex({ username: 1 }, { unique: true });
-    await usersCol.createIndex({ email: 1 }, { unique: true, sparse: true });
-    await sessionsCol.createIndex({ token: 1 }, { unique: true });
-    await sessionsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    await usersCol.createIndex({ email: 1 });
 
-    // Preserve existing records or initialize if fresh
-    const existingTokens = await tokensCol.countDocuments();
-    if (existingTokens === 0) {
-      console.log('[MONGODB] Initializing fresh database with baseline state...');
+    const existingCount = await tokensCol.countDocuments();
+    if (existingCount === 0) {
       const seedTokens = [
         DEFAULT_STATE.currentServing,
         ...DEFAULT_STATE.tokens,
@@ -378,30 +333,28 @@ async function provisionInitialAdminIfConfigured() {
 
   const existingAdmin = await getUserByRole('admin');
   if (existingAdmin) {
-    return; // Administrator already exists
+    return;
   }
 
-  if (adminPassword && adminPassword.trim()) {
-    const cred = auth.hashPassword(adminPassword.trim());
-    const adminUser = {
-      id: 'USR-ADMIN-01',
-      username: adminUsername,
-      email: `${adminUsername}@queueless.gov.in`,
-      name: 'System Administrator',
-      mobile: '9999999999',
-      role: 'admin',
-      status: 'APPROVED',
-      office: 'All Offices',
-      counter: 'All Counters',
-      passwordHash: cred.hash,
-      salt: cred.salt,
-      createdAt: new Date().toISOString(),
-      approvedBy: 'Auto-Provisioned (.env)',
-      approvedAt: new Date().toISOString()
-    };
-    await createUser(adminUser);
-    console.log(`[AUTH] Initial administrator account "${adminUsername}" provisioned from .env.`);
-  }
+  const cred = auth.hashPassword(adminPassword.trim());
+  const adminUser = {
+    id: 'USR-ADMIN-01',
+    username: adminUsername,
+    email: `${adminUsername}@queueless.gov.in`,
+    name: 'System Administrator',
+    mobile: '9999999999',
+    role: 'admin',
+    status: 'APPROVED',
+    office: 'All Offices',
+    counter: 'All Counters',
+    passwordHash: cred.hash,
+    salt: cred.salt,
+    createdAt: new Date().toISOString(),
+    approvedBy: 'Auto-Provisioned (.env)',
+    approvedAt: new Date().toISOString()
+  };
+  await createUser(adminUser);
+  console.log(`[AUTH] Initial administrator account "${adminUsername}" provisioned.`);
 }
 
 // ==========================================
@@ -425,31 +378,24 @@ async function getQueueState(office = null) {
     const [currentServing, waitingTokens, completedTokens, meta] = await Promise.all([
       tokensCol.findOne(servingQuery),
       tokensCol.find(waitingQuery).sort({ createdAt: 1 }).toArray(),
-      tokensCol.find(completedQuery).sort({ completedAt: -1, createdAt: -1 }).limit(15).toArray(),
+      tokensCol.find(completedQuery).sort({ completedAt: -1 }).limit(50).toArray(),
       metadataCol.findOne({ _id: 'queue_meta' })
     ]);
 
-    const nextTokenNum = (meta && meta.nextTokenNum) || 44;
-    const completedCount = (meta && meta.completedCount) || 24;
-    const walkinCount = (meta && meta.walkinCount) || 1;
-    const soundEnabled = meta ? meta.soundEnabled !== false : true;
-
     return {
       currentServing: currentServing || null,
-      tokens: waitingTokens,
-      completedTokens,
-      nextTokenNum,
-      completedCount,
-      walkinCount,
-      soundEnabled
+      tokens: waitingTokens || [],
+      completedTokens: completedTokens || [],
+      nextTokenNum: meta ? meta.nextTokenNum : 44,
+      completedCount: meta ? meta.completedCount : 24,
+      walkinCount: meta ? meta.walkinCount : 1,
+      soundEnabled: meta ? meta.soundEnabled !== false : true
     };
   }
 
-  // File persistence: filter by office if specified
   if (office && office !== 'All Offices') {
-    const isServingOffice = fileState.currentServing && fileState.currentServing.office === office;
     return {
-      currentServing: isServingOffice ? fileState.currentServing : null,
+      currentServing: (fileState.currentServing && fileState.currentServing.office === office) ? fileState.currentServing : null,
       tokens: fileState.tokens.filter(t => t.office === office),
       completedTokens: fileState.completedTokens.filter(t => t.office === office),
       nextTokenNum: fileState.nextTokenNum,
@@ -466,6 +412,7 @@ async function getStats(office = null) {
   const state = await getQueueState(office);
   const waiting = state.tokens.filter(t => t.status === 'WAITING').length;
   const serving = (state.currentServing && state.currentServing.status === 'SERVING') ? 1 : 0;
+
   return {
     waiting,
     serving,
@@ -477,37 +424,37 @@ async function getStats(office = null) {
 }
 
 async function hasActiveTokenForService(mobile, service) {
-  if (!mobile) return false;
-  const cleanMobile = String(mobile).replace(/\D/g, '').slice(-10);
+  if (!mobile || !service) return false;
+  const cleanMobile = String(mobile).replace(/\D/g, '');
   if (!cleanMobile) return false;
 
   if (isMongoConnected && mongoDb) {
     const tokensCol = mongoDb.collection('tokens');
-    const existing = await tokensCol.findOne({
+    const count = await tokensCol.countDocuments({
       service,
-      status: { $in: ['WAITING', 'CALLED', 'SERVING'] },
+      status: { $in: ['WAITING', 'SERVING'] },
       $or: [
         { mobile: cleanMobile },
-        { mobile: { $regex: cleanMobile + '$' } }
+        { mobile: { $regex: cleanMobile } }
       ]
     });
-    return !!existing;
+    return count > 0;
   }
 
   const inWaiting = fileState.tokens.some(t => {
-    const tMobile = String(t.mobile || '').replace(/\D/g, '').slice(-10);
-    return tMobile === cleanMobile && t.service === service && (t.status === 'WAITING' || t.status === 'CALLED');
+    const tMobile = String(t.mobile || '').replace(/\D/g, '');
+    return tMobile === cleanMobile && t.service === service && t.status === 'WAITING';
   });
 
   const inServing = fileState.currentServing &&
-    String(fileState.currentServing.mobile || '').replace(/\D/g, '').slice(-10) === cleanMobile &&
+    String(fileState.currentServing.mobile || '').replace(/\D/g, '') === cleanMobile &&
     fileState.currentServing.service === service &&
     fileState.currentServing.status === 'SERVING';
 
   return inWaiting || inServing;
 }
 
-// Atomic Token Creation
+// Add Token (Citizen or Walk-in)
 async function addToken({
   service = 'Income Certificate',
   office = 'Rajkot District Service Center',
@@ -516,31 +463,27 @@ async function addToken({
   type = 'ONLINE',
   isDemo = false
 }) {
-  const isWalkin = type.toUpperCase() === 'WALK-IN';
-  const cleanMobile = String(mobile || '').replace(/\D/g, '').slice(-10);
+  const cleanMobile = String(mobile).replace(/\D/g, '');
 
   if (isMongoConnected && mongoDb) {
-    const tokensCol = mongoDb.collection('tokens');
     const metadataCol = mongoDb.collection('metadata');
+    const tokensCol = mongoDb.collection('tokens');
 
-    const updateFields = { nextTokenNum: 1 };
-    if (isWalkin) updateFields.walkinCount = 1;
-
-    const metaResult = await metadataCol.findOneAndUpdate(
+    const meta = await metadataCol.findOneAndUpdate(
       { _id: 'queue_meta' },
-      { $inc: updateFields },
-      { returnDocument: 'after', upsert: true }
+      { $inc: { nextTokenNum: 1, ...(type === 'WALK-IN' ? { walkinCount: 1 } : {}) } },
+      { upsert: true, returnDocument: 'after' }
     );
 
-    const tokenNum = metaResult.nextTokenNum - 1;
+    const tokenNum = meta ? meta.nextTokenNum - 1 : Math.floor(Math.random() * 500) + 50;
     const tokenId = `A-${tokenNum}`;
 
     const newToken = {
       id: tokenId,
-      type: isWalkin ? 'WALK-IN' : 'ONLINE',
+      type: type || 'ONLINE',
       service,
       office,
-      customerName: customerName || (isWalkin ? 'Walk-in Citizen' : 'Citizen'),
+      customerName: customerName || (type === 'WALK-IN' ? 'Walk-in Citizen' : 'Citizen'),
       mobile: cleanMobile,
       status: 'WAITING',
       isDemo: !!isDemo,
@@ -548,147 +491,138 @@ async function addToken({
     };
 
     await tokensCol.insertOne(newToken);
-    await logActivity('TOKEN_CREATED', { name: customerName || 'Citizen', role: isWalkin ? 'officer' : 'citizen' }, {
+    await logActivity('TOKEN_CREATED', { name: customerName, role: type === 'WALK-IN' ? 'officer' : 'citizen' }, {
       tokenId,
-      type: newToken.type,
       service,
-      office
+      office,
+      type
     });
 
-    const updatedState = await getQueueState(office);
-    return { token: newToken, state: updatedState };
+    const state = await getQueueState(office);
+    return { token: newToken, state };
   }
 
-  // File persistence with in-memory atomic sequence
-  const tokenId = `A-${fileState.nextTokenNum}`;
-  fileState.nextTokenNum += 1;
-  if (isWalkin) fileState.walkinCount += 1;
+  const tokenNum = fileState.nextTokenNum++;
+  const tokenId = `A-${tokenNum}`;
 
   const newToken = {
     id: tokenId,
-    type: isWalkin ? 'WALK-IN' : 'ONLINE',
+    type: type || 'ONLINE',
     service,
     office,
-    customerName: customerName || (isWalkin ? 'Walk-in Citizen' : 'Citizen'),
+    customerName: customerName || (type === 'WALK-IN' ? 'Walk-in Citizen' : 'Citizen'),
     mobile: cleanMobile,
     status: 'WAITING',
     isDemo: !!isDemo,
     createdAt: new Date().toISOString()
   };
 
+  if (type === 'WALK-IN') {
+    fileState.walkinCount += 1;
+  }
+
   fileState.tokens.push(newToken);
   saveFile(QUEUE_FILE, fileState);
 
-  await logActivity('TOKEN_CREATED', { name: customerName || 'Citizen', role: isWalkin ? 'officer' : 'citizen' }, {
+  await logActivity('TOKEN_CREATED', { name: customerName, role: type === 'WALK-IN' ? 'officer' : 'citizen' }, {
     tokenId,
-    type: newToken.type,
     service,
-    office
+    office,
+    type
   });
 
   return { token: newToken, state: fileState };
 }
 
-// Call Next Waiting Token
-async function callNext(counter = 'Counter 2', targetTokenId = null, actor = { name: 'Officer', role: 'officer' }) {
+// Call Next
+async function callNext(counter = 'Counter 2', targetTokenId = null, actor = { name: 'Counter Officer', role: 'officer' }) {
   if (isMongoConnected && mongoDb) {
     const tokensCol = mongoDb.collection('tokens');
-    const metadataCol = mongoDb.collection('metadata');
 
-    let targetToken = null;
-    if (targetTokenId) {
-      targetToken = await tokensCol.findOne({ id: targetTokenId, status: 'WAITING' });
-    } else {
-      targetToken = await tokensCol.findOne({ status: 'WAITING' }, { sort: { createdAt: 1 } });
-    }
-
-    if (!targetToken) {
-      throw new Error('No eligible waiting customer in queue.');
-    }
-
-    // Complete current serving if present
-    const currentServing = await tokensCol.findOne({ status: 'SERVING' });
-    if (currentServing) {
+    const prevServing = await tokensCol.findOne({ status: 'SERVING' });
+    if (prevServing) {
       await tokensCol.updateOne(
-        { id: currentServing.id },
-        {
-          $set: {
-            status: 'COMPLETED',
-            completedAt: new Date().toISOString()
-          }
-        }
+        { id: prevServing.id },
+        { $set: { status: 'COMPLETED', completedAt: new Date().toISOString() } }
       );
+      const metadataCol = mongoDb.collection('metadata');
       await metadataCol.updateOne({ _id: 'queue_meta' }, { $inc: { completedCount: 1 } });
     }
 
-    // Call target token
-    const now = new Date().toISOString();
+    let nextToken = null;
+    if (targetTokenId) {
+      nextToken = await tokensCol.findOne({ id: targetTokenId, status: 'WAITING' });
+    }
+    if (!nextToken) {
+      nextToken = await tokensCol.findOne({ status: 'WAITING' }, { sort: { createdAt: 1 } });
+    }
+
+    if (!nextToken) {
+      throw new Error('No waiting customers in queue.');
+    }
+
+    const calledAt = new Date().toISOString();
     await tokensCol.updateOne(
-      { id: targetToken.id },
-      {
-        $set: {
-          status: 'SERVING',
-          counter: counter || 'Counter 2',
-          calledAt: now,
-          servedBy: actor.name
-        }
-      }
+      { id: nextToken.id },
+      { $set: { status: 'SERVING', counter: counter || 'Counter 2', calledAt } }
     );
 
-    targetToken.status = 'SERVING';
-    targetToken.counter = counter || 'Counter 2';
-    targetToken.calledAt = now;
+    nextToken.status = 'SERVING';
+    nextToken.counter = counter || 'Counter 2';
+    nextToken.calledAt = calledAt;
 
     await logActivity('TOKEN_CALLED', actor, {
-      tokenId: targetToken.id,
-      counter: counter || 'Counter 2',
-      service: targetToken.service
+      tokenId: nextToken.id,
+      counter: nextToken.counter,
+      service: nextToken.service
     });
 
     const state = await getQueueState();
-    return { calledToken: targetToken, state };
-  }
-
-  // File persistence
-  let targetIndex = -1;
-  if (targetTokenId) {
-    targetIndex = fileState.tokens.findIndex(t => t.id === targetTokenId);
-  } else {
-    targetIndex = fileState.tokens.findIndex(t => t.status === 'WAITING');
-  }
-
-  if (targetIndex === -1) {
-    throw new Error('No waiting customers in queue.');
+    return { calledToken: nextToken, state };
   }
 
   if (fileState.currentServing && fileState.currentServing.status === 'SERVING') {
-    const prev = fileState.currentServing;
-    prev.status = 'COMPLETED';
-    prev.completedAt = new Date().toISOString();
-    fileState.completedTokens.unshift(prev);
+    const completed = {
+      ...fileState.currentServing,
+      status: 'COMPLETED',
+      completedAt: new Date().toISOString()
+    };
+    fileState.completedTokens.unshift(completed);
     fileState.completedCount += 1;
+    fileState.currentServing = null;
   }
 
-  const [calledToken] = fileState.tokens.splice(targetIndex, 1);
-  calledToken.status = 'SERVING';
-  calledToken.counter = counter || 'Counter 2';
-  calledToken.calledAt = new Date().toISOString();
-  calledToken.servedBy = actor.name;
+  let tokenIndex = -1;
+  if (targetTokenId) {
+    tokenIndex = fileState.tokens.findIndex(t => t.id === targetTokenId && t.status === 'WAITING');
+  }
+  if (tokenIndex === -1) {
+    tokenIndex = fileState.tokens.findIndex(t => t.status === 'WAITING');
+  }
 
-  fileState.currentServing = calledToken;
+  if (tokenIndex === -1) {
+    throw new Error('No waiting customers in queue.');
+  }
+
+  const [called] = fileState.tokens.splice(tokenIndex, 1);
+  called.status = 'SERVING';
+  called.counter = counter || 'Counter 2';
+  called.calledAt = new Date().toISOString();
+
+  fileState.currentServing = called;
   saveFile(QUEUE_FILE, fileState);
 
   await logActivity('TOKEN_CALLED', actor, {
-    tokenId: calledToken.id,
-    counter: counter || 'Counter 2',
-    service: calledToken.service
+    tokenId: called.id,
+    counter: called.counter,
+    service: called.service
   });
 
-  return { calledToken, state: fileState };
+  return { calledToken: called, state: fileState };
 }
 
-// Complete Current Serving Token
-async function completeCurrent(actor = { name: 'Officer', role: 'officer' }) {
+// Complete Current
+async function completeCurrent(actor = { name: 'Counter Officer', role: 'officer' }) {
   if (isMongoConnected && mongoDb) {
     const tokensCol = mongoDb.collection('tokens');
     const metadataCol = mongoDb.collection('metadata');
@@ -701,12 +635,7 @@ async function completeCurrent(actor = { name: 'Officer', role: 'officer' }) {
     const completedAt = new Date().toISOString();
     await tokensCol.updateOne(
       { id: currentServing.id },
-      {
-        $set: {
-          status: 'COMPLETED',
-          completedAt
-        }
-      }
+      { $set: { status: 'COMPLETED', completedAt } }
     );
     await metadataCol.updateOne({ _id: 'queue_meta' }, { $inc: { completedCount: 1 } });
 
@@ -780,7 +709,7 @@ async function markNoShow(tokenId, actor = { name: 'Officer', role: 'officer' })
     await logActivity('TOKEN_NOSHOW', actor, { tokenId });
     return { token: t, state: fileState };
   }
-  throw new Error(`Token ${tokenId} not found.`);
+  throw new Error(`Token ${tokenId} not found in active queue.`);
 }
 
 // Cancel Token
@@ -789,7 +718,7 @@ async function cancelToken(tokenId, actor = { name: 'Citizen', role: 'citizen' }
     const tokensCol = mongoDb.collection('tokens');
     const token = await tokensCol.findOne({ id: tokenId });
     if (!token) {
-      throw new Error(`Token ${tokenId} not found in waiting queue.`);
+      throw new Error(`Token ${tokenId} not found.`);
     }
 
     await tokensCol.updateOne(
@@ -863,6 +792,39 @@ async function seedDemoData({ office = 'Rajkot District Service Center', force =
   };
 }
 
+// Reset Queue
+async function resetQueue(office = 'Rajkot District Service Center') {
+  if (isMongoConnected && mongoDb) {
+    const tokensCol = mongoDb.collection('tokens');
+    const metadataCol = mongoDb.collection('metadata');
+
+    await tokensCol.deleteMany({});
+    const seedTokens = [
+      DEFAULT_STATE.currentServing,
+      ...DEFAULT_STATE.tokens,
+      ...DEFAULT_STATE.completedTokens
+    ];
+    await tokensCol.insertMany(seedTokens);
+    await metadataCol.updateOne(
+      { _id: 'queue_meta' },
+      {
+        $set: {
+          nextTokenNum: DEFAULT_STATE.nextTokenNum,
+          completedCount: DEFAULT_STATE.completedCount,
+          walkinCount: DEFAULT_STATE.walkinCount,
+          soundEnabled: true
+        }
+      },
+      { upsert: true }
+    );
+    return await getQueueState(office);
+  }
+
+  fileState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  saveFile(QUEUE_FILE, fileState);
+  return fileState;
+}
+
 // Global Filtered Tokens for Admin Queue Monitor
 async function getAllTokensFiltered({
   office = '',
@@ -879,115 +841,64 @@ async function getAllTokensFiltered({
     const query = {};
     if (office && office !== 'All Offices') query.office = office;
     if (service && service !== 'All Services') query.service = service;
-    if (counter && counter !== 'All Counters') query.counter = counter;
-    if (status && status !== 'All Statuses') query.status = status;
+    if (counter) query.counter = counter;
+    if (status) query.status = status;
     if (date) {
-      query.createdAt = { $regex: '^' + date };
+      query.createdAt = { $regex: `^${date}` };
     }
-    allTokens = await tokensCol.find(query).sort({ createdAt: -1 }).limit(Number(limit)).toArray();
-  } else {
-    // Collect from file state
-    const pool = [
-      ...(fileState.currentServing ? [fileState.currentServing] : []),
-      ...fileState.tokens,
-      ...fileState.completedTokens
-    ];
-
-    allTokens = pool.filter(t => {
-      if (office && office !== 'All Offices' && t.office !== office) return false;
-      if (service && service !== 'All Services' && t.service !== service) return false;
-      if (counter && counter !== 'All Counters' && t.counter !== counter) return false;
-      if (status && status !== 'All Statuses' && t.status !== status) return false;
-      if (date && t.createdAt && !t.createdAt.startsWith(date)) return false;
-      return true;
-    });
-
-    allTokens = allTokens.slice(0, Number(limit));
+    return await tokensCol.find(query).sort({ createdAt: -1 }).limit(Number(limit)).toArray();
   }
 
-  return allTokens;
+  // File fallback
+  if (fileState.currentServing) {
+    allTokens.push(fileState.currentServing);
+  }
+  allTokens = allTokens.concat(fileState.tokens).concat(fileState.completedTokens);
+
+  return allTokens.filter(t => {
+    if (office && office !== 'All Offices' && t.office !== office) return false;
+    if (service && service !== 'All Services' && t.service !== service) return false;
+    if (counter && t.counter !== counter) return false;
+    if (status && t.status !== status) return false;
+    if (date && t.createdAt && !t.createdAt.startsWith(date)) return false;
+    return true;
+  }).slice(0, Number(limit));
 }
 
-// Calculate Queue Metrics
+// Get Governance Metrics for Admin
 async function getQueueMetrics(office = null) {
   const state = await getQueueState(office);
-  const officesList = await getOffices();
-  const selectedOffice = officesList.find(o => o.name === office) || officesList[0];
-
-  const waitingCount = state.tokens.filter(t => t.status === 'WAITING').length;
-  const servingCount = state.currentServing ? 1 : 0;
-  const activeCountersCount = selectedOffice ? selectedOffice.counters.filter(c => c.officerId).length : 1;
-  const effectiveCounters = Math.max(1, activeCountersCount);
-
-  // Dynamic Average Waiting Time (Minutes)
-  const avgWaitTimeMinutes = Math.round((waitingCount * 5) / effectiveCounters);
+  const waitingTokens = state.tokens.filter(t => t.status === 'WAITING');
+  const avgWaitMinutes = waitingTokens.length * 5;
 
   return {
-    waitingCount,
-    servingCount,
-    completedToday: state.completedCount,
-    walkinsToday: state.walkinCount,
-    activeCounters: activeCountersCount,
-    avgWaitTimeMinutes: avgWaitTimeMinutes || 5
+    waitingCount: waitingTokens.length,
+    servingCount: state.currentServing ? 1 : 0,
+    completedCount: state.completedCount,
+    walkinCount: state.walkinCount,
+    estimatedWaitMinutes: avgWaitMinutes
   };
 }
 
-// Reset Queue Demo Baseline
-async function resetQueue() {
-  if (isMongoConnected && mongoDb) {
-    const tokensCol = mongoDb.collection('tokens');
-    const metadataCol = mongoDb.collection('metadata');
+// ==========================================
+// Appointments
+// ==========================================
 
-    await tokensCol.deleteMany({});
-    const seedTokens = [
-      DEFAULT_STATE.currentServing,
-      ...DEFAULT_STATE.tokens,
-      ...DEFAULT_STATE.completedTokens
-    ];
-    await tokensCol.insertMany(seedTokens);
-
-    await metadataCol.updateOne(
-      { _id: 'queue_meta' },
-      {
-        $set: {
-          nextTokenNum: DEFAULT_STATE.nextTokenNum,
-          completedCount: DEFAULT_STATE.completedCount,
-          walkinCount: DEFAULT_STATE.walkinCount,
-          soundEnabled: true
-        }
-      },
-      { upsert: true }
-    );
-
-    return await getQueueState();
+async function createAppointment({ office, service, date, slot, name, mobile }) {
+  if (!office || !service || !date || !slot || !name || !mobile) {
+    throw new Error('All appointment fields (office, service, date, slot, name, mobile) are required.');
   }
 
-  fileState = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  saveFile(QUEUE_FILE, fileState);
-  return fileState;
-}
+  const id = `APT-${Date.now().toString().slice(-4)}`;
+  const cleanMobile = String(mobile).replace(/\D/g, '');
 
-// ==========================================
-// Appointment Management
-// ==========================================
-
-async function createAppointment({
-  office = 'Rajkot District Service Center',
-  service = 'Income Certificate',
-  date = new Date().toISOString().split('T')[0],
-  slot = '10:00 AM – 10:30 AM',
-  name = 'Citizen',
-  mobile = ''
-}) {
-  const aptId = `APT-${Math.floor(1000 + Math.random() * 9000)}`;
-  const cleanMobile = String(mobile || '').replace(/\D/g, '').slice(-10);
-  const appointment = {
-    id: aptId,
+  const newApt = {
+    id,
     office,
     service,
     date,
     slot,
-    name: name || 'Citizen',
+    name,
     mobile: cleanMobile,
     status: 'CONFIRMED',
     createdAt: new Date().toISOString()
@@ -995,21 +906,21 @@ async function createAppointment({
 
   if (isMongoConnected && mongoDb) {
     const appointmentsCol = mongoDb.collection('appointments');
-    await appointmentsCol.insertOne(appointment);
+    await appointmentsCol.insertOne(newApt);
   } else {
-    fileAppointments.unshift(appointment);
+    fileAppointments.unshift(newApt);
     saveFile(APPOINTMENTS_FILE, fileAppointments);
   }
 
-  await logActivity('APPOINTMENT_BOOKED', { name: name || 'Citizen', role: 'citizen' }, {
-    aptId,
+  await logActivity('APPOINTMENT_BOOKED', { name, role: 'citizen' }, {
+    appointmentId: id,
     office,
     service,
     slot,
     date
   });
 
-  return appointment;
+  return newApt;
 }
 
 async function getAppointments() {
@@ -1117,22 +1028,16 @@ async function assignCounterOfficer(officeId, counterId, officerId, officerName)
     );
   } else {
     const off = fileOffices.find(o => o.id === officeId);
-    if (off) {
-      const c = off.counters.find(cnt => cnt.id === counterId);
-      if (c) {
-        c.officerId = officerId || null;
-        c.officerName = officerName || 'Standby';
-        saveFile(OFFICES_FILE, fileOffices);
-      }
+    if (!off) throw new Error('Office not found.');
+    const counter = off.counters.find(c => c.id === counterId);
+    if (counter) {
+      counter.officerId = officerId || null;
+      counter.officerName = officerName || 'Standby';
+      saveFile(OFFICES_FILE, fileOffices);
     }
   }
 
-  await logActivity('COUNTER_ASSIGNED', { name: 'Administrator', role: 'admin' }, {
-    officeId,
-    counterId,
-    officerId,
-    officerName
-  });
+  await logActivity('COUNTER_ASSIGNED', { name: 'Administrator', role: 'admin' }, { officeId, counterId, officerName });
   return { success: true };
 }
 
@@ -1389,7 +1294,7 @@ async function logActivity(action, actor = { name: 'System', role: 'system' }, d
   } else {
     fileActivityLogs.unshift(logItem);
     if (fileActivityLogs.length > 500) {
-      fileActivityLogs = fileActivityLogs.slice(0, 500); // keep most recent 500
+      fileActivityLogs = fileActivityLogs.slice(0, 500);
     }
     saveFile(ACTIVITY_FILE, fileActivityLogs);
   }
